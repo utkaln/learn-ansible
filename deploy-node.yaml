@@ -1,0 +1,51 @@
+---
+- name: Install node and npm
+  hosts: droplet
+  tasks:
+    - name: Update apt and cache
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+    - name: Install nodejs and npm
+      apt:
+        pkg:
+          - nodejs
+          - npm
+- name: Create new user for node app
+  hosts: droplet
+  vars_files:
+    - node-vars.yaml
+  tasks:
+    - name: Create linux user
+      user:
+        name: "{{linux_user}}"
+        comment: Node Admin User
+        group: "{{linux_user_group}}"
+
+- name: Deploy node app
+  hosts: droplet
+  vars_files:
+    - node-vars.yaml
+  become: True
+  become_user: "{{linux_user}}"
+  tasks:
+    - name: Unpack the node app tar file
+      unarchive:
+        src: "{{local_package_src}}"
+        dest: "{{remote_package_dest}}{{linux_user}}"
+    - name: Install dependencies from package.json
+      community.general.npm:
+        path: "{{remote_package_dest}}{{linux_user}}/package"
+        state: latest
+    - name: Start node app
+      command:
+        chdir: "{{remote_package_dest}}{{linux_user}}/package"
+        cmd: node index
+      async: "{{async_wait_time}}"
+      poll: 0
+    - name: Report App Process
+      shell: ps aux | grep {{linux_user}}
+      register: app_status
+    - debug:
+        msg: "{{ app_status.stdout_lines}}"

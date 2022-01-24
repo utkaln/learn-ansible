@@ -1,0 +1,6 @@
+version: 1.0.0
+linux_user: node_admin
+linux_user_group: admin
+local_package_src: /Users/utkalnayak/code/basic-node-app/basic-node-app-1.0.0.tgz
+remote_package_dest: /home/
+async_wait_time: 1000
