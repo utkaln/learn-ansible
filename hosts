@@ -1,16 +1,7 @@
-[webserver-ec2]
-100.24.31.43
-54.227.232.234
-
 [droplet]
-159.223.176.114
+142.93.1.36
 
 [droplet:vars]
 ansible_ssh_private_key_file=~/.ssh/id_rsa
 ansible_user=root
-
-
-[webserver-ec2:vars]
-ansible_ssh_private_key_file=~/code/ansible/ansible-local/learn-ansible.pem
-ansible_user=ec2-user
 

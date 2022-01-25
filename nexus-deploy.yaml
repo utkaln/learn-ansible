@@ -17,6 +17,10 @@
 - name: DOWNLOAD AND UNPACK NEXUS INSTALLER
   hosts: droplet
   tasks:
+    - name: Check if folder exists
+      stat:
+        path: /opt/nexus
+      register: check_folder_result
     - name: Download Nexus
       get_url:
         url: https://download.sonatype.com/nexus/3/latest-unix.tar.gz
@@ -27,16 +31,13 @@
         src: "{{nexus_download_result.dest}}"
         dest: /opt
         remote_src: true
+      when: not check_folder_result.stat.exists
     - name: Find Nexus Folder name
       find:
         paths: /opt
         pattern: "nexus-*"
         file_type: directory
       register: find_folder_name_result
-    - name: Check if folder exists
-      stat:
-        path: /opt/nexus
-      register: check_folder_result
     - name: Rename folder name of Nexus
       shell: mv {{find_folder_name_result.files[0].path}} /opt/nexus
       when: not check_folder_result.stat.exists
@@ -66,3 +67,24 @@
         owner: nexus
         group: nexus
         recurse: yes
+
+- name: START NEXUS WITH NEXUS USER
+  hosts: droplet
+  become: True
+  become_user: nexus
+  tasks:
+    - name: Add Nexus user to nexus config
+      lineinfile:
+        path: /opt/nexus/bin/nexus.rc
+        regex: '^#run_as_user=""'
+        line: run_as_user="nexus"
+    - name: Start Nexus instance
+      command: /opt/nexus/bin/nexus start
+    - name: Wait (Pause) for 30 seconds
+      pause:
+        seconds: 30
+    - name: Report Nexus Process
+      command: netstat -plnt
+      register: nexus_instance_status
+    - debug:
+        msg: "{{ nexus_instance_status.stdout_lines}}"
