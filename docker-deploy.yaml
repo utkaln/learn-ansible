@@ -1,0 +1,35 @@
+---
+- name: INSTALL DOCKER, DOCKER-COMPOSE and STARTED
+  hosts: docker
+  become: yes
+  tasks:
+    - name: docker present
+      yum:
+        name: docker
+        update_cache: yes
+        state: present
+    - name: docker-compose downloaded and installed
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-{{lookup('pipe','uname -m')}}
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: Docker service started
+      service:
+        name: docker
+        state: started
+    - name: ec2-user permission to run docker added
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+    - name: server connection reset
+      meta: reset_connection
+
+- name: CHECK DOCKER ACCESS BY EC2-USER
+  hosts: docker
+  tasks:
+    - name: Docker access verified
+      command: docker ps -a
+      register: docker_ps_result
+    - debug:
+        msg: "{{docker_ps_result.stdout_lines}}"
