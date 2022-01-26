@@ -13,6 +13,9 @@
         url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-{{lookup('pipe','uname -m')}}
         dest: /usr/local/bin/docker-compose
         mode: +x
+    - name: python for docker installed
+      pip:
+        name: docker
     - name: Docker service started
       service:
         name: docker
@@ -24,6 +27,14 @@
         append: yes
     - name: server connection reset
       meta: reset_connection
+
+- name: CHECK DOCKER IMAGE PULLED
+  hosts: docker
+  tasks:
+    - name: Docker image PULLED
+      docker_image:
+        name: redis
+        source: pull
 
 - name: CHECK DOCKER ACCESS BY EC2-USER
   hosts: docker
