@@ -1,0 +1,49 @@
+---
+- name: INSTALL DOCKER, DOCKER-COMPOSE and STARTED
+  hosts: docker
+  become: yes
+  tasks:
+    - name: docker present
+      yum:
+        name: docker
+        update_cache: yes
+        state: present
+    - name: docker-compose downloaded and installed
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-{{lookup('pipe','uname -m')}}
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: python for docker installed
+      pip:
+        name:
+          - docker
+          - docker-compose
+    - name: Docker service started
+      service:
+        name: docker
+        state: started
+    - name: add new user to run docker
+      user:
+        name: docker_service_user
+        groups: adm,docker
+
+- name: START DOCKER CONTAINER
+  hosts: docker
+  become: yes
+  become_user: docker_service_user
+  vars_files:
+    - credentials-local.yaml
+  tasks:
+    - name: Copy docker compose from local to remote
+      copy:
+        src: /Users/utkalnayak/code/ansible/learn-ansible/docker-compose.yaml
+        dest: /home/docker_service_user/docker-compose.yaml
+    - name: Docker Login
+      docker_login:
+        registry_url: https://index.docker.io/v1/
+        username: utkal
+        password: "{{docker_password}}"
+    - name: Docker container from image using Docker Compose started
+      docker_compose:
+        project_src: /home/docker_service_user
+        state: present
