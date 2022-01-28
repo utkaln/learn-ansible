@@ -1,6 +1,6 @@
 ---
 - name: WAIT FOR SSH PORT AVAILABLE
-  hosts: all
+  hosts: aws_ec2
   tasks:
     - name: Check EC2 instance has ssh port AVAILABLE
       vars:
@@ -12,7 +12,7 @@
         host: "{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}"
 
 - name: INSTALL DOCKER, DOCKER-COMPOSE and STARTED
-  hosts: all
+  hosts: aws_ec2
   become: yes
   tasks:
     - name: docker present
@@ -43,7 +43,7 @@
       meta: reset_connection
 
 - name: START DOCKER CONTAINER
-  hosts: all
+  hosts: aws_ec2
   vars_files:
     - credentials-local.yaml
   tasks:
