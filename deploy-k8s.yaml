@@ -4,7 +4,12 @@
   tasks:
     - name: Create a k8s namespace
       kubernetes.core.k8s:
-        name: utkal-k8s-ns
+        name: fargate
         api_version: v1
         kind: Namespace
         state: present
+    - name: Deploy nginx app
+      kubernetes.core.k8s:
+        src: /Users/utkalnayak/code/ansible/learn-ansible/nginx-eks-fargate.yaml
+        state: present
+        namespace: fargate
