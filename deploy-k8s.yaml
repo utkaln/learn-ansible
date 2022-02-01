@@ -1,0 +1,10 @@
+---
+- name: DEPLOY APP IN NEW NAMESPACE
+  hosts: localhost
+  tasks:
+    - name: Create a k8s namespace
+      kubernetes.core.k8s:
+        name: utkal-k8s-ns
+        api_version: v1
+        kind: Namespace
+        state: present
